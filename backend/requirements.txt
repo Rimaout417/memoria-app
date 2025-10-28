@@ -1,0 +1,16 @@
+# Python dependencies
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg[binary]
+python-dotenv
+pydantic
+pydantic-settings
+passlib[bcrypt]
+python-jose[cryptography]
+databases[asyncpg]
+alembic
+
+# dev
+pytest
+httpx

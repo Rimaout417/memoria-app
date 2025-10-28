@@ -1,0 +1,68 @@
+# Alembic Database Migration
+
+このプロジェクトではAlembicを使用してデータベースマイグレーションを管理しています。
+
+## 基本的な使い方
+
+### マイグレーションファイルの作成
+
+スキーマを変更した後、以下のコマンドでマイグレーションファイルを自動生成します：
+
+```bash
+docker-compose exec backend alembic revision --autogenerate -m "変更内容の説明"
+```
+
+例：
+```bash
+docker-compose exec backend alembic revision --autogenerate -m "Add user table"
+```
+
+### マイグレーションの適用
+
+生成されたマイグレーションをデータベースに適用します：
+
+```bash
+docker-compose exec backend alembic upgrade head
+```
+
+### マイグレーションの取り消し
+
+1つ前のバージョンに戻す：
+
+```bash
+docker-compose exec backend alembic downgrade -1
+```
+
+特定のリビジョンに戻す：
+
+```bash
+docker-compose exec backend alembic downgrade <revision_id>
+```
+
+### マイグレーション履歴の確認
+
+現在のマイグレーション状態を確認：
+
+```bash
+docker-compose exec backend alembic current
+```
+
+マイグレーション履歴を表示：
+
+```bash
+docker-compose exec backend alembic history
+```
+
+## ワークフロー
+
+1. `app/schemas/`でモデルを変更
+2. マイグレーションファイルを自動生成
+3. 生成されたファイル（`alembic/versions/`）を確認
+4. マイグレーションを適用
+5. 変更をコミット
+
+## 注意事項
+
+- マイグレーションファイルは自動生成後、必ず内容を確認してください
+- 本番環境に適用する前に、開発環境でテストしてください
+- マイグレーションファイルはバージョン管理に含めてください

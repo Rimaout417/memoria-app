@@ -1,0 +1,1 @@
+# Favorites API tests
