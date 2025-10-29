@@ -1,25 +1,26 @@
 # Note Pydantic schemas
-import os
+from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import Optional
 
-from sqlalchemy import Column, DateTime, Integer, MetaData, String, Table, create_engine
-from sqlalchemy.sql import func
 
-from databases import Database
+class NoteCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    content: str = Field(..., min_length=1)
 
-from app.core.config import settings
 
-DATABASE_URL = settings.DATABASE_URL
-# SQLAlchemy
-engine = create_engine(DATABASE_URL)
-metadata = MetaData()
-notes = Table(
-    "notes",
-    metadata,
-    Column("id", Integer, primary_key=True),
-    Column("title", String(50)),
-    Column("description", String(50)),
-    Column("created_date", DateTime, default=func.now(), nullable=False),
-)
+class NoteUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    content: Optional[str] = Field(None, min_length=1)
 
-# databases query builder
-database = Database(DATABASE_URL)
+
+class NoteResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+    user_id: int
+    created_date: datetime
+    updated_date: datetime
+
+    class ConfigDict:
+        from_attributes = True
