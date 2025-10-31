@@ -7,6 +7,7 @@ import RegisterPage from './pages/RegisterPage';
 import NotesPage from './pages/NotesPage';
 import FavoritesPage from './pages/FavoritesPage';
 import ExportPage from './pages/ExportPage';
+import GenerationHistoryPage from './pages/GenerationHistoryPage';
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -21,7 +22,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        
+
         <Route
           path="/notes"
           element={
@@ -30,7 +31,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/favorites"
           element={
@@ -39,7 +40,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/export"
           element={
@@ -48,7 +49,16 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
+        <Route
+          path="/ai-history"
+          element={
+            <ProtectedRoute>
+              <GenerationHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/" element={<Navigate to="/notes" replace />} />
       </Routes>
     </BrowserRouter>

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { getNotes, createNote, updateNote, deleteNote, Note, NoteCreate, NoteUpdate } from '../api/noteApi';
 import { addFavorite, removeFavorite, isFavorite } from '../api/favoriteApi';
 import { useAuthStore } from '../store/authStore';
+import { useAIStore } from '../store/aiStore';
+import IdeaGenerationModal from '../components/IdeaGenerationModal';
 
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -10,8 +12,10 @@ export default function NotesPage() {
   const [loading, setLoading] = useState(true);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
   const [formData, setFormData] = useState({ title: '', content: '' });
   const { logout, username } = useAuthStore();
+  const { selectedNoteIds, toggleNoteSelection, clearSelection } = useAIStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,7 +26,7 @@ export default function NotesPage() {
     try {
       const data = await getNotes();
       setNotes(data);
-      
+
       // お気に入り状態をチェック
       const favSet = new Set<number>();
       for (const note of data) {
@@ -51,7 +55,7 @@ export default function NotesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (editingNote) {
         const updated = await updateNote(editingNote.id, formData as NoteUpdate);
@@ -102,6 +106,20 @@ export default function NotesPage() {
     navigate('/login');
   };
 
+  const handleAIGeneration = () => {
+    setShowAIModal(true);
+  };
+
+  const handleAIModalClose = () => {
+    setShowAIModal(false);
+  };
+
+  const handleNoteSaved = () => {
+    // Reload notes after saving generated content as a note
+    loadNotes();
+    clearSelection();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -125,6 +143,12 @@ export default function NotesPage() {
               お気に入り
             </button>
             <button
+              onClick={() => navigate('/ai-history')}
+              className="px-4 py-2 text-blue-600 hover:text-blue-700"
+            >
+              AI履歴
+            </button>
+            <button
               onClick={() => navigate('/export')}
               className="px-4 py-2 text-blue-600 hover:text-blue-700"
             >
@@ -142,13 +166,31 @@ export default function NotesPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center gap-4">
           <button
             onClick={handleCreate}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
           >
             ＋ 新規ノート
           </button>
+
+          {selectedNoteIds.length > 0 && (
+            <>
+              <button
+                onClick={handleAIGeneration}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium flex items-center gap-2"
+              >
+                <span>🤖</span>
+                <span>AIでアイデア生成 ({selectedNoteIds.length})</span>
+              </button>
+              <button
+                onClick={clearSelection}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                選択解除
+              </button>
+            </>
+          )}
         </div>
 
         {notes.length === 0 ? (
@@ -161,12 +203,22 @@ export default function NotesPage() {
             {notes.map((note) => (
               <div
                 key={note.id}
-                className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
+                className={`bg-white p-6 rounded-lg shadow hover:shadow-md transition-all ${selectedNoteIds.includes(note.id) ? 'ring-2 ring-purple-500' : ''
+                  }`}
               >
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 flex-1">
-                    {note.title}
-                  </h3>
+                  <div className="flex items-start gap-3 flex-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedNoteIds.includes(note.id)}
+                      onChange={() => toggleNoteSelection(note.id)}
+                      className="mt-1 h-5 w-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+                      title="AIアイデア生成用に選択"
+                    />
+                    <h3 className="text-lg font-semibold text-gray-900 flex-1">
+                      {note.title}
+                    </h3>
+                  </div>
                   <button
                     onClick={() => handleToggleFavorite(note.id)}
                     className={`text-xl ${favorites.has(note.id) ? 'text-yellow-500' : 'text-gray-300'} hover:text-yellow-500`}
@@ -175,10 +227,10 @@ export default function NotesPage() {
                     {favorites.has(note.id) ? '⭐' : '☆'}
                   </button>
                 </div>
-                <p className="text-gray-600 mb-4 line-clamp-3 whitespace-pre-wrap">
+                <p className="text-gray-600 mb-4 line-clamp-3 whitespace-pre-wrap ml-8">
                   {note.content}
                 </p>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center ml-8">
                   <div className="text-sm text-gray-400">
                     {new Date(note.updated_date).toLocaleDateString('ja-JP')}
                   </div>
@@ -203,7 +255,7 @@ export default function NotesPage() {
         )}
       </main>
 
-      {/* Modal */}
+      {/* Note Edit/Create Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full p-6">
@@ -256,6 +308,13 @@ export default function NotesPage() {
           </div>
         </div>
       )}
+
+      {/* AI Idea Generation Modal */}
+      <IdeaGenerationModal
+        isOpen={showAIModal}
+        onClose={handleAIModalClose}
+        onNoteSaved={handleNoteSaved}
+      />
     </div>
   );
 }

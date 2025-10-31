@@ -7,7 +7,13 @@ from alembic import context
 
 # Import settings and models
 from app.core.config import settings
-from app.schemas.note_schema import metadata
+from app.database import Base
+
+# Import all models to ensure they are registered with Base.metadata
+from app.models.user import User
+from app.models.note import Note
+from app.models.favorite import Favorite
+from app.models.ai_generation import AIGeneration
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,7 +29,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-target_metadata = metadata
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

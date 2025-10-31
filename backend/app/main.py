@@ -1,14 +1,18 @@
 from contextlib import asynccontextmanager
 import sys
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
-from app.api import notes, users, auth, favorites
+from app.api import notes, users, auth, favorites, ai
 from app.database import database, engine, Base
 from app.models.user import User
 from app.models.note import Note
 from app.models.favorite import Favorite
+from app.models.ai_generation import AIGeneration
 
 # テーブル作成
 Base.metadata.create_all(engine)
@@ -47,6 +51,11 @@ async def lifespan(app: FastAPI):
   - DELETE      /api/favorites/{{note_id}}
   - GET         /api/favorites/{{note_id}}/check
 
+{BLUE}🤖 AI Generation:{RESET}
+  - POST        /api/ai/generate-idea
+  - GET         /api/ai/generations
+  - POST        /api/ai/save-as-note
+
 {GREEN}{'='*60}{RESET}
 """
     print(message, file=sys.stderr)
@@ -62,6 +71,11 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# レート制限の設定
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS設定（フロントエンドからのアクセスを許可）
 app.add_middleware(
@@ -80,6 +94,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(notes.router)
 app.include_router(favorites.router)
+app.include_router(ai.router)
 
 
 @app.get("/")
