@@ -1,140 +1,193 @@
-# Notes API tests
+"""ノートAPIのテスト"""
 
 import json
-
-import pytest
-
+from datetime import datetime
 from app.services import note_service
 
 
-def test_create_note(test_app, monkeypatch):
-    test_request_payload = {"title": "something", "description": "something else"}
-    test_response_payload = {
-        "id": 1,
-        "title": "something",
-        "description": "something else",
-    }
+def test_create_note(test_app, auth_headers, mock_current_user, monkeypatch):
+    """ノート作成のテスト"""
+    test_payload = {"title": "Test Note", "content": "Test content"}
 
-    async def mock_create_note(payload):
-        return 1
+    async def mock_create_note(payload, user_id):
+        return {
+            "id": 1,
+            "title": payload.title,
+            "content": payload.content,
+            "user_id": user_id,
+            "created_date": "2024-01-01T00:00:00",
+            "updated_date": "2024-01-01T00:00:00",
+        }
 
     monkeypatch.setattr(note_service, "create_note", mock_create_note)
 
-    response = test_app.post(
-        "/api/notes/",
-        content=json.dumps(test_request_payload),
-    )
+    response = test_app.post("/api/notes", json=test_payload, headers=auth_headers)
 
     assert response.status_code == 201
-    assert response.json() == test_response_payload
+    assert response.json()["title"] == "Test Note"
+    assert response.json()["content"] == "Test content"
 
 
-def test_create_note_invalid_json(test_app):
-    response = test_app.post("/api/notes/", content=json.dumps({"title": "something"}))
-    assert response.status_code == 422
+def test_create_note_unauthorized(test_app_no_auth):
+    """認証なしでのノート作成テスト"""
+    test_payload = {"title": "Test Note", "content": "Test content"}
 
-    response = test_app.post(
-        "/api/notes/", content=json.dumps({"title": "1", "description": "2"})
-    )
-    assert response.status_code == 422
+    response = test_app_no_auth.post("/api/notes", json=test_payload)
 
-
-def test_read_note(test_app, monkeypatch):
-    test_data = {"id": 1, "title": "something", "description": "something else"}
-
-    async def mock_get_note(id):
-        return test_data
-
-    monkeypatch.setattr(note_service, "get_note", mock_get_note)
-
-    response = test_app.get("/api/notes/1/")
-    assert response.status_code == 200
-    assert response.json() == test_data
+    assert response.status_code == 401
 
 
-def test_read_note_incorrect_id(test_app, monkeypatch):
-    async def mock_get_note(id):
-        return None
-
-    monkeypatch.setattr(note_service, "get_note", mock_get_note)
-
-    response = test_app.get("/api/notes/999/")
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Note not found"
-
-    response = test_app.get("/api/notes/0/")
-    assert response.status_code == 422
-
-
-def test_read_all_notes(test_app, monkeypatch):
+def test_get_notes(test_app, auth_headers, mock_current_user, monkeypatch):
+    """ノート一覧取得のテスト"""
     test_data = [
-        {"title": "something", "description": "something else", "id": 1},
-        {"title": "someone", "description": "someone else", "id": 2},
+        {
+            "id": 1,
+            "title": "Note 1",
+            "content": "Content 1",
+            "user_id": 1,
+            "created_date": "2024-01-01T00:00:00",
+            "updated_date": "2024-01-01T00:00:00",
+        },
+        {
+            "id": 2,
+            "title": "Note 2",
+            "content": "Content 2",
+            "user_id": 1,
+            "created_date": "2024-01-02T00:00:00",
+            "updated_date": "2024-01-02T00:00:00",
+        },
     ]
 
-    async def mock_get_all_notes():
+    async def mock_get_all_notes(user_id):
         return test_data
 
     monkeypatch.setattr(note_service, "get_all_notes", mock_get_all_notes)
 
-    response = test_app.get("/api/notes/")
+    response = test_app.get("/api/notes", headers=auth_headers)
+
     assert response.status_code == 200
-    assert response.json() == test_data
+    assert len(response.json()) == 2
 
 
-@pytest.mark.parametrize(
-    "id, payload, status_code",
-    [
-        [1, {}, 422],
-        [1, {"description": "bar"}, 422],
-        [999, {"title": "foo", "description": "bar"}, 404],
-        [1, {"title": "1", "description": "bar"}, 422],
-        [1, {"title": "foo", "description": "1"}, 422],
-        [0, {"title": "foo", "description": "bar"}, 422],
-    ],
-)
-def test_update_note_invalid(test_app, monkeypatch, id, payload, status_code):
-    async def mock_get_note(note_id):
-        if note_id == 999:
-            return None
-        return {"id": 1, "title": "old", "description": "old"}
+def test_get_note(test_app, auth_headers, mock_current_user, monkeypatch):
+    """ノート詳細取得のテスト"""
+    test_data = {
+        "id": 1,
+        "title": "Test Note",
+        "content": "Test content",
+        "user_id": 1,
+        "created_date": "2024-01-01T00:00:00",
+        "updated_date": "2024-01-01T00:00:00",
+    }
 
-    monkeypatch.setattr(note_service, "get_note", mock_get_note)
-
-    response = test_app.put(
-        f"/api/notes/{id}/",
-        content=json.dumps(payload),
-    )
-    assert response.status_code == status_code
-
-
-def test_remove_note(test_app, monkeypatch):
-    test_data = {"title": "something", "description": "something else", "id": 1}
-
-    async def mock_get_note(id):
+    async def mock_get_note(note_id, user_id):
         return test_data
 
     monkeypatch.setattr(note_service, "get_note", mock_get_note)
 
-    async def mock_delete_note(id):
-        return id
+    response = test_app.get("/api/notes/1", headers=auth_headers)
 
-    monkeypatch.setattr(note_service, "delete_note", mock_delete_note)
-
-    response = test_app.delete("/api/notes/1/")
     assert response.status_code == 200
-    assert response.json() == test_data
+    assert response.json()["title"] == "Test Note"
 
 
-def test_remove_note_incorrect_id(test_app, monkeypatch):
-    async def mock_get_note(id):
+def test_get_note_not_found(test_app, auth_headers, mock_current_user, monkeypatch):
+    """存在しないノートの取得テスト"""
+
+    async def mock_get_note(note_id, user_id):
         return None
 
     monkeypatch.setattr(note_service, "get_note", mock_get_note)
 
-    response = test_app.delete("/api/notes/999/")
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Note not found"
+    response = test_app.get("/api/notes/999", headers=auth_headers)
 
-    response = test_app.delete("/api/notes/0/")
-    assert response.status_code == 422
+    assert response.status_code == 404
+
+
+def test_update_note(test_app, auth_headers, mock_current_user, monkeypatch):
+    """ノート更新のテスト"""
+    test_payload = {"title": "Updated Title", "content": "Updated content"}
+
+    async def mock_update_note(note_id, user_id, payload):
+        return {
+            "id": 1,
+            "title": "Updated Title",
+            "content": "Updated content",
+            "user_id": user_id,
+            "created_date": "2024-01-01T00:00:00",
+            "updated_date": "2024-01-02T00:00:00",
+        }
+
+    monkeypatch.setattr(note_service, "update_note", mock_update_note)
+
+    response = test_app.put("/api/notes/1", json=test_payload, headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "Updated Title"
+
+
+def test_update_note_not_found(test_app, auth_headers, mock_current_user, monkeypatch):
+    """存在しないノートの更新テスト"""
+    test_payload = {"title": "Updated Title"}
+
+    async def mock_update_note(note_id, user_id, payload):
+        return None
+
+    monkeypatch.setattr(note_service, "update_note", mock_update_note)
+
+    response = test_app.put("/api/notes/999", json=test_payload, headers=auth_headers)
+
+    assert response.status_code == 404
+
+
+def test_delete_note(test_app, auth_headers, mock_current_user, monkeypatch):
+    """ノート削除のテスト"""
+
+    async def mock_delete_note(note_id, user_id):
+        return 1
+
+    monkeypatch.setattr(note_service, "delete_note", mock_delete_note)
+
+    response = test_app.delete("/api/notes/1", headers=auth_headers)
+
+    assert response.status_code == 204
+
+
+def test_delete_note_not_found(test_app, auth_headers, mock_current_user, monkeypatch):
+    """存在しないノートの削除テスト"""
+
+    async def mock_delete_note(note_id, user_id):
+        return 0
+
+    monkeypatch.setattr(note_service, "delete_note", mock_delete_note)
+
+    response = test_app.delete("/api/notes/999", headers=auth_headers)
+
+    assert response.status_code == 404
+
+
+def test_import_notes(test_app, auth_headers, mock_current_user, monkeypatch):
+    """ノートインポートのテスト"""
+    test_payload = [
+        {"title": "Imported Note 1", "content": "Content 1"},
+        {"title": "Imported Note 2", "content": "Content 2"},
+    ]
+
+    async def mock_import_notes(notes_data, user_id):
+        return len(notes_data)
+
+    monkeypatch.setattr(note_service, "import_notes", mock_import_notes)
+
+    response = test_app.post(
+        "/api/notes/import", json=test_payload, headers=auth_headers
+    )
+
+    assert response.status_code == 201
+    assert response.json()["count"] == 2
+
+
+def test_import_notes_empty(test_app, auth_headers, mock_current_user):
+    """空のノートインポートテスト"""
+    response = test_app.post("/api/notes/import", json=[], headers=auth_headers)
+
+    assert response.status_code == 400

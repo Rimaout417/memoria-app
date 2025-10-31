@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFavorites, removeFavorite } from '../api/favoriteApi';
-import { Note } from '../api/noteApi';
+import { Note, deleteNote } from '../api/noteApi';
 import { useAuthStore } from '../store/authStore';
 
 export default function FavoritesPage() {
@@ -37,6 +37,18 @@ export default function FavoritesPage() {
     }
   };
 
+  const handleDeleteNote = async (noteId: number) => {
+    if (!confirm('このノートを完全に削除しますか？')) return;
+
+    try {
+      await deleteNote(noteId);
+      setFavorites(favorites.filter(note => note.id !== noteId));
+    } catch (error) {
+      console.error('Failed to delete note:', error);
+      alert('ノートの削除に失敗しました');
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -51,22 +63,22 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">⭐ お気に入り</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">⭐ お気に入り</h1>
           <div className="flex items-center gap-4">
-            <span className="text-gray-600">{username}</span>
+            <span className="text-gray-600 dark:text-gray-400">{username}</span>
             <button
               onClick={() => navigate('/notes')}
-              className="px-4 py-2 text-blue-600 hover:text-blue-700"
+              className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
             >
               ノート一覧
             </button>
             <button
               onClick={() => navigate('/export')}
-              className="px-4 py-2 text-blue-600 hover:text-blue-700"
+              className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
             >
               エクスポート
             </button>
@@ -84,7 +96,7 @@ export default function FavoritesPage() {
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {favorites.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">お気に入りのノートがありません</p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">お気に入りのノートがありません</p>
             <button
               onClick={() => navigate('/notes')}
               className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -97,21 +109,30 @@ export default function FavoritesPage() {
             {favorites.map((note) => (
               <div
                 key={note.id}
-                className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow"
               >
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex-1">
                     {note.title}
                   </h3>
-                  <button
-                    onClick={() => handleRemoveFavorite(note.id)}
-                    className="text-yellow-500 hover:text-gray-400 text-xl"
-                    title="お気に入りから削除"
-                  >
-                    ⭐
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleRemoveFavorite(note.id)}
+                      className="text-yellow-500 hover:text-gray-400 text-xl"
+                      title="お気に入りから削除"
+                    >
+                      ⭐
+                    </button>
+                    <button
+                      onClick={() => handleDeleteNote(note.id)}
+                      className="text-red-500 hover:text-red-700 text-xl"
+                      title="ノートを削除"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
-                <p className="text-gray-600 mb-4 line-clamp-3">
+                <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
                   {note.content}
                 </p>
                 <div className="text-sm text-gray-400">
