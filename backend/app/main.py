@@ -78,12 +78,20 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS設定（フロントエンドからのアクセスを許可）
+from app.core.config import settings
+
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
+
+# 本番環境のフロントエンドURLを追加
+if settings.FRONTEND_URL and settings.FRONTEND_URL not in allowed_origins:
+    allowed_origins.append(settings.FRONTEND_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-    ],  # React/Viteの開発サーバー
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
