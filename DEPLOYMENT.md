@@ -16,42 +16,57 @@ git push origin main
 
 ## 2. バックエンドのデプロイ（Render）
 
-### 2.1 PostgreSQL データベースの作成
+Render は`render.yaml`ファイルを使った Blueprint 方式でデプロイします。
 
-1. Render ダッシュボードで「New +」→「PostgreSQL」を選択
-2. 名前を入力（例：`memoria-db`）
-3. 無料プランを選択
-4. 「Create Database」をクリック
-5. データベースの「Internal Database URL」をコピー
+### 2.1 Blueprint からデプロイ（推奨）
 
-### 2.2 Web Service の作成
+1. Render ダッシュボード（https://dashboard.render.com）にアクセス
+2. 「New +」→「Blueprint」を選択
+3. GitHub リポジトリ `memoria-app` を接続
+4. Render が自動的に`render.yaml`を検出します
+5. サービス名やプランを確認して「Apply」をクリック
 
-1. Render ダッシュボードで「New +」→「Web Service」を選択
-2. GitHub リポジトリを接続
-3. 以下の設定を入力：
+これで PostgreSQL データベースとバックエンド Web Service が自動的に作成されます。
 
-   - **Name**: `memoria-backend`（任意）
-   - **Region**: Oregon（無料プラン）
-   - **Branch**: `main`
-   - **Root Directory**: `backend`
-   - **Runtime**: Python 3
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+### 2.2 環境変数の設定
 
-4. 環境変数を設定：
+Blueprint が作成されたら、以下の環境変数を手動で設定します：
 
-   - `DATABASE_URL`: 先ほどコピーした PostgreSQL の URL
-   - `SECRET_KEY`: ランダムな文字列（例：`openssl rand -hex 32`で生成）
-   - `ALGORITHM`: `HS256`
-   - `ACCESS_TOKEN_EXPIRE_MINUTES`: `30`
+1. `memoria-backend` サービスを開く
+2. 「Environment」タブで以下を追加：
+   - `FRONTEND_URL`: 後で設定（Vercel のデプロイ後）
    - `OPENAI_API_KEY`: OpenAI API キー（オプション）
    - `ANTHROPIC_API_KEY`: Anthropic API キー（オプション）
    - `GEMINI_API_KEY`: Google Gemini API キー（オプション）
-   - `FRONTEND_URL`: 後で設定（Vercel のデプロイ後）
 
-5. 「Create Web Service」をクリック
+注: `DATABASE_URL`、`SECRET_KEY`、`ALGORITHM`、`ACCESS_TOKEN_EXPIRE_MINUTES`は`render.yaml`で自動設定されます。
 
-6. デプロイ完了後、URL をコピー（例：`https://memoria-backend.onrender.com`）
+3. デプロイ完了後、URL をコピー（例：`https://memoria-backend.onrender.com`）
+
+### 2.3 手動デプロイの場合（Blueprint を使わない場合）
+
+もし Blueprint 方式を使わない場合は、以下の手順で手動デプロイできます：
+
+**PostgreSQL データベースの作成**
+
+1. 「New +」→「PostgreSQL」
+2. Name: `memoria-db`
+3. Plan: Free
+4. 「Create Database」をクリック
+5. Internal Database URL をコピー
+
+**Web Service の作成**
+
+1. 「New +」→「Web Service」
+2. GitHub リポジトリを接続
+3. 設定：
+   - Name: `memoria-backend`
+   - Runtime: Python 3
+   - Root Directory: `backend`
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - Plan: Free
+4. 環境変数を手動で設定（上記 2.2 参照 + DATABASE_URL など）
 
 ## 3. フロントエンドのデプロイ（Vercel）
 
