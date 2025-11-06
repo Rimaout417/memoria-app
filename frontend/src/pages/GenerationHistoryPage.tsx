@@ -70,35 +70,35 @@ export default function GenerationHistoryPage() {
 
     if (isLoadingHistory && generationHistory.length === 0) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-xl">読み込み中...</div>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                <div className="text-xl text-gray-900 dark:text-white">読み込み中...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Header */}
-            <header className="bg-white shadow">
+            <header className="bg-white dark:bg-gray-800 shadow">
                 <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-900">🤖 AI生成履歴</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">🤖 AI生成履歴</h1>
                     <div className="flex items-center gap-4">
-                        <span className="text-gray-600">{username}</span>
+                        <span className="text-gray-600 dark:text-gray-300">{username}</span>
                         <button
                             onClick={() => navigate('/notes')}
-                            className="px-4 py-2 text-blue-600 hover:text-blue-700"
+                            className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                         >
                             ノート一覧
                         </button>
                         <button
                             onClick={() => navigate('/favorites')}
-                            className="px-4 py-2 text-blue-600 hover:text-blue-700"
+                            className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                         >
                             お気に入り
                         </button>
                         <button
                             onClick={() => navigate('/export')}
-                            className="px-4 py-2 text-blue-600 hover:text-blue-700"
+                            className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                         >
                             エクスポート
                         </button>
@@ -115,11 +115,11 @@ export default function GenerationHistoryPage() {
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
                 {error && (
-                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-red-800">{error}</p>
+                    <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p className="text-red-800 dark:text-red-200">{error}</p>
                         <button
                             onClick={clearError}
-                            className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+                            className="mt-2 text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 underline"
                         >
                             閉じる
                         </button>
@@ -128,10 +128,10 @@ export default function GenerationHistoryPage() {
 
                 {generationHistory.length === 0 ? (
                     <div className="text-center py-12">
-                        <p className="text-gray-500 text-lg">AI生成履歴がありません</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-lg">AI生成履歴がありません</p>
                         <button
                             onClick={() => navigate('/notes')}
-                            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                         >
                             ノートからアイデアを生成
                         </button>
@@ -142,22 +142,22 @@ export default function GenerationHistoryPage() {
                             {generationHistory.map((generation) => (
                                 <div
                                     key={generation.id}
-                                    className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
+                                    className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow"
                                 >
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                                                <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full text-sm font-medium">
                                                     {generation.ai_provider.toUpperCase()}
                                                 </span>
-                                                <span className="text-sm text-gray-500">
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">
                                                     {new Date(generation.created_date).toLocaleString('ja-JP')}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-gray-600 mb-2">
+                                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
                                                 <strong>プロンプト:</strong> {generation.prompt}
                                             </p>
-                                            <p className="text-sm text-gray-500">
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                                 使用ノート: {generation.note_ids.length}件
                                             </p>
                                         </div>
@@ -180,9 +180,9 @@ export default function GenerationHistoryPage() {
                                         </button>
                                     </div>
 
-                                    <div className="mt-4 p-4 bg-gray-50 rounded border border-gray-200">
-                                        <h4 className="text-sm font-semibold text-gray-700 mb-2">生成されたコンテンツ:</h4>
-                                        <p className="text-gray-800 whitespace-pre-wrap">{generation.generated_content}</p>
+                                    <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
+                                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">生成されたコンテンツ:</h4>
+                                        <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{generation.generated_content}</p>
                                     </div>
                                 </div>
                             ))}
@@ -194,7 +194,7 @@ export default function GenerationHistoryPage() {
                                 <button
                                     onClick={() => handlePageChange(historyPage - 1)}
                                     disabled={historyPage === 1 || isLoadingHistory}
-                                    className="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed"
                                 >
                                     前へ
                                 </button>
@@ -218,8 +218,8 @@ export default function GenerationHistoryPage() {
                                                 onClick={() => handlePageChange(pageNum)}
                                                 disabled={isLoadingHistory}
                                                 className={`px-4 py-2 rounded ${historyPage === pageNum
-                                                        ? 'bg-blue-600 text-white'
-                                                        : 'bg-white border border-gray-300 hover:bg-gray-50'
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
                                                     } disabled:cursor-not-allowed`}
                                             >
                                                 {pageNum}
@@ -231,14 +231,14 @@ export default function GenerationHistoryPage() {
                                 <button
                                     onClick={() => handlePageChange(historyPage + 1)}
                                     disabled={historyPage === totalPages || isLoadingHistory}
-                                    className="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed"
                                 >
                                     次へ
                                 </button>
                             </div>
                         )}
 
-                        <div className="mt-4 text-center text-sm text-gray-500">
+                        <div className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
                             全{historyTotal}件中 {(historyPage - 1) * 20 + 1}〜{Math.min(historyPage * 20, historyTotal)}件を表示
                         </div>
                     </>
@@ -248,11 +248,11 @@ export default function GenerationHistoryPage() {
             {/* Save as Note Modal */}
             {showSaveModal && selectedGeneration && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-                        <h2 className="text-2xl font-bold mb-4">ノートとして保存</h2>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full p-6">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">ノートとして保存</h2>
                         <form onSubmit={handleSaveSubmit}>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     ノートのタイトル
                                 </label>
                                 <input
@@ -260,18 +260,18 @@ export default function GenerationHistoryPage() {
                                     required
                                     value={saveTitle}
                                     onChange={(e) => setSaveTitle(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="タイトルを入力"
                                     maxLength={200}
                                 />
                             </div>
 
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     プレビュー
                                 </label>
-                                <div className="p-4 bg-gray-50 rounded border border-gray-200 max-h-60 overflow-y-auto">
-                                    <p className="text-gray-800 whitespace-pre-wrap text-sm">
+                                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 max-h-60 overflow-y-auto">
+                                    <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap text-sm">
                                         {selectedGeneration.generated_content}
                                     </p>
                                 </div>
@@ -285,7 +285,7 @@ export default function GenerationHistoryPage() {
                                         setSaveTitle('');
                                         setSelectedGeneration(null);
                                     }}
-                                    className="px-4 py-2 text-gray-700 hover:text-gray-900"
+                                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                                     disabled={savingId !== null}
                                 >
                                     キャンセル
