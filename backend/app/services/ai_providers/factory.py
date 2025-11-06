@@ -22,7 +22,9 @@ def get_ai_provider(provider_name: str) -> AIProviderBase:
 
     if provider_name == "openai":
         if not settings.OPENAI_API_KEY:
-            raise ValueError("OpenAI API key is not configured")
+            raise ValueError(
+                "AI機能は現在利用できません。OpenAI APIキーが設定されていません。"
+            )
         return OpenAIProvider(
             api_key=settings.OPENAI_API_KEY,
             timeout=settings.AI_REQUEST_TIMEOUT,
@@ -34,7 +36,9 @@ def get_ai_provider(provider_name: str) -> AIProviderBase:
         from .anthropic_provider import AnthropicProvider
 
         if not settings.ANTHROPIC_API_KEY:
-            raise ValueError("Anthropic API key is not configured")
+            raise ValueError(
+                "AI機能は現在利用できません。Anthropic APIキーが設定されていません。"
+            )
         return AnthropicProvider(
             api_key=settings.ANTHROPIC_API_KEY,
             timeout=settings.AI_REQUEST_TIMEOUT,
@@ -46,7 +50,9 @@ def get_ai_provider(provider_name: str) -> AIProviderBase:
         from .gemini_provider import GeminiProvider
 
         if not settings.GEMINI_API_KEY:
-            raise ValueError("Gemini API key is not configured")
+            raise ValueError(
+                "AI機能は現在利用できません。Gemini APIキーが設定されていません。"
+            )
         return GeminiProvider(
             api_key=settings.GEMINI_API_KEY, timeout=settings.AI_REQUEST_TIMEOUT
         )

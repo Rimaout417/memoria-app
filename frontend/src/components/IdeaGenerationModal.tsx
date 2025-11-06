@@ -103,8 +103,12 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
             await generateIdea(prompt || undefined, aiProvider);
             showToast('アイデアを生成しました！', 'success');
             setShowSaveForm(true);
-        } catch (err) {
-            // Error is handled by useEffect
+        } catch (err: any) {
+            // Check if AI is disabled on server
+            if (err?.message?.includes('AI機能は現在利用できません') ||
+                err?.message?.includes('APIキーが設定されていません')) {
+                showToast('AI機能は現在利用できません。ローカル環境でお試しください。', 'info');
+            }
             console.error('Generation error:', err);
         }
     };
@@ -139,7 +143,7 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 {/* Toast Notification */}
                 {toast && (
                     <div className={`fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${toast.type === 'success' ? 'bg-green-500' :
@@ -151,19 +155,19 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
                 )}
 
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200">
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold text-gray-900">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                             🤖 AIアイデア生成
                         </h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 text-2xl"
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
                         >
                             ×
                         </button>
                     </div>
-                    <p className="text-sm text-gray-600 mt-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                         選択中のノート: {selectedNoteIds.length}件
                     </p>
                 </div>
@@ -172,14 +176,14 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
                 <div className="p-6 space-y-6">
                     {/* AI Provider Selection */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             AIプロバイダー
                         </label>
                         <select
                             value={aiProvider}
                             onChange={(e) => setAiProvider(e.target.value as 'openai' | 'anthropic' | 'gemini')}
                             disabled={isGenerating}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed"
                         >
                             <option value="openai">OpenAI (GPT-4)</option>
                             <option value="anthropic">Anthropic (Claude)</option>
@@ -189,9 +193,9 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
 
                     {/* Prompt Input */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             プロンプト（オプション）
-                            <span className="text-gray-500 text-xs ml-2">
+                            <span className="text-gray-500 dark:text-gray-400 text-xs ml-2">
                                 {prompt.length}/2000文字
                             </span>
                         </label>
@@ -204,9 +208,27 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed"
                             placeholder="例: これらのノートから新しいプロジェクトのアイデアを3つ提案してください"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             空欄の場合、デフォルトのプロンプトが使用されます
                         </p>
+                    </div>
+
+                    {/* AI Feature Notice */}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                            <span className="text-2xl">ℹ️</span>
+                            <div className="flex-1">
+                                <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-1">
+                                    AI機能について
+                                </h4>
+                                <p className="text-sm text-blue-800 dark:text-blue-300">
+                                    本番環境ではAI機能は無効化されています。この機能を使用するには、ローカル環境でAPIキーを設定してください。
+                                </p>
+                                <p className="text-xs text-blue-700 dark:text-blue-400 mt-2">
+                                    対応プロバイダー: OpenAI (GPT-4), Anthropic (Claude), Google (Gemini)
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Generate Button */}
@@ -224,7 +246,7 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
                             ) : (
                                 <>
                                     <span>✨</span>
-                                    <span>アイデアを生成</span>
+                                    <span>アイデアを生成（デモ）</span>
                                 </>
                             )}
                         </button>
@@ -233,16 +255,16 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
                     {/* Generated Content Display */}
                     {generatedContent && (
                         <div className="space-y-4">
-                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                                 <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-lg font-semibold text-gray-900">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                         生成結果
                                     </h3>
-                                    <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-1 rounded">
                                         {generatedContent.ai_provider}
                                     </span>
                                 </div>
-                                <div className="text-gray-700 whitespace-pre-wrap max-h-96 overflow-y-auto">
+                                <div className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap max-h-96 overflow-y-auto">
                                     {generatedContent.generated_content}
                                 </div>
                             </div>
@@ -251,9 +273,9 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
                             {showSaveForm && (
                                 <div className="space-y-3">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             ノートのタイトル
-                                            <span className="text-gray-500 text-xs ml-2">
+                                            <span className="text-gray-500 dark:text-gray-400 text-xs ml-2">
                                                 {saveTitle.length}/200文字
                                             </span>
                                         </label>
@@ -262,7 +284,7 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
                                             value={saveTitle}
                                             onChange={(e) => setSaveTitle(e.target.value)}
                                             maxLength={200}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                                             placeholder="生成されたアイデアのタイトル"
                                         />
                                     </div>
@@ -283,7 +305,7 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
                                     setShowSaveForm(false);
                                     setSaveTitle('');
                                 }}
-                                className="w-full px-4 py-2 text-purple-600 hover:text-purple-700 font-medium"
+                                className="w-full px-4 py-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
                             >
                                 🔄 別のアイデアを生成
                             </button>
@@ -292,11 +314,11 @@ export default function IdeaGenerationModal({ isOpen, onClose, onNoteSaved }: Id
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200 bg-gray-50">
+                <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                     <div className="flex justify-end gap-3">
                         <button
                             onClick={onClose}
-                            className="px-6 py-2 text-gray-700 hover:text-gray-900 font-medium"
+                            className="px-6 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium"
                         >
                             閉じる
                         </button>

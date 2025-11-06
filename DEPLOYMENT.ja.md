@@ -1,6 +1,6 @@
 # デプロイ手順
 
-English | [日本語](DEPLOYMENT.ja.md)
+[English](DEPLOYMENT.md) | 日本語
 
 ## 前提条件
 

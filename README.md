@@ -2,6 +2,8 @@
 
 A modern note-taking application with AI-powered idea generation, user authentication, and favorites management.
 
+English | [日本語](README.ja.md)
+
 ## Features
 
 - 📝 Create, edit, and delete notes with rich text support
@@ -87,11 +89,13 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 FRONTEND_URL=http://localhost:5173
 
-# Optional: AI API Keys
+# Optional: AI API Keys (for local development only)
 OPENAI_API_KEY=your-openai-api-key
 ANTHROPIC_API_KEY=your-anthropic-api-key
 GEMINI_API_KEY=your-gemini-api-key
 ```
+
+**Note:** AI features are disabled in production deployment to prevent unexpected API costs. To use AI idea generation, run the application locally with your own API keys.
 
 ### Frontend (.env)
 
